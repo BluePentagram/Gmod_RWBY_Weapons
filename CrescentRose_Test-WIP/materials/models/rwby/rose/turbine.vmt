@@ -1,0 +1,17 @@
+"vertexlitgeneric"
+{
+	"$baseTexture" "models/rwby/rose/turbine"
+
+	"$phongalbedotint" "1"
+	"$phongexponenttexture" "models/rwby/rose/green"
+
+	"$BasemapAlphaPhongMask"	1
+
+	"$halflambert" "0"
+	"$phongfresnelranges"	"[0.3 0.5 0.7]"
+
+	"$phong"				"1"
+	"$phongexponent"			"5"
+	"$phongboost"			"25"
+}
+

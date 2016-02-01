@@ -1,0 +1,12 @@
+"vertexlitgeneric"
+{
+	"$baseTexture" "models/rwby/rose/bullet_shell_black"
+	"$bumpmap" "models/rwby/rose/bullet_shell_nrm"
+
+	"$phongfresnelranges"			"[0.3 0.5 0.7]"
+
+	"$phong" "1"
+	"$phongexponent"				"15"
+	"$phongboost"					"7"
+}
+

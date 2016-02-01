@@ -1,0 +1,16 @@
+"vertexlitgeneric"
+{
+	"$baseTexture" "models/rwby/rose/bullet_shell_red"
+	"$bumpmap" "models/rwby/rose/bullet_shell_nrm"
+
+	"$phongfresnelranges"			"[0.3 0.5 0.7]"
+
+	"$phong" "1"
+	"$phongexponent"				"15"
+	"$phongboost"					"7"
+
+	"$selfillum"	"1"
+	"$selfIllumFresnel"	"1"
+	"$selfIllumFresnelMinMaxExp"	"[1 4 0]"
+}
+

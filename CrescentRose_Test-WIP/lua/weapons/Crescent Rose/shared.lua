@@ -544,47 +544,83 @@ SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
 
 function SWEP:Reload()
+	if not IsFirstTimePredicted() then return end
 	if self.ReloadingTime and CurTime() <= self.ReloadingTime then return end
-	self.ReloadingTime = CurTime() + 1
+	
 	
 	if self.Owner:KeyDown(IN_USE) then
+		if SERVER then return end
 		self:ChangeMode()
-		return
-	end
-	
+		self.ReloadingTime = CurTime() + 0.5
+	else
+		self.ReloadingTime = CurTime() + 1
+	end	
 end
 
 -- end
  
 function SWEP:Think()
+	local GunP = self.WElements["Crescent Rose"].pos
+	local GunA = self.WElements["Crescent Rose"].angle
 	if !self.Gun then
 		self:SetWeaponHoldType( "melee2" )
-		self.ViewModel = "models/weapons/c_crowbar.mdl"
-		self.WElements["Crescent Rose"].modelEnt:ResetSequence("fold_to_rife") -- To Gun
+		
+		GunP.x = 5.699
+		GunP.y = 0.519
+		GunP.z = -15.065
+		
+		GunA.x = -90
+		GunA.y = -5
+		GunA.z = 180
+		
 	else
 		self:SetWeaponHoldType( "crossbow" )
-		self.ViewModel = "models/weapons/c_crossbow.mdl"
+		
+		GunP.x = 14.5
+		GunP.y = 0
+		GunP.z = 0
+		
+		GunA.x = 0
+		GunA.y = 0
+		GunA.z = 180
+		
 	end	
 end
 
 function SWEP:PrimaryAttack()
-	self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: PrimaryAttack Test")
+	if !self.Gun then return end
+	self:EmitSound("weapons/sg552/sg552-1.wav")
+	self:ShootBullet( 100, 1, 0)
+	self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
+	if SERVER then return end
+	self.Owner:ViewPunch( Angle( -10, 0, 0 ) )
+  -- if ( !self:CanPrimaryAttack() ) then return end
+  -- self:TakePrimarymmo( 1 )
 end
 
 function SWEP:SecondaryAttack()
-
+	if not IsFirstTimePredicted() then return end
+	self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: SecondaryAttack Test")
 end
 
 function SWEP:ChangeMode()
+	-- local BoneIndx1 = self.Owner:LookupBone("ValveBiped.Bip01_L_Forearm")
+	-- local BoneIndx2 = self.Owner:LookupBone("ValveBiped.Bip01_L_Hand")
 	if self.Gun then
 			self.Gun = false 
 			self.VElements["Crescent Rose"].modelEnt:ResetSequence("fold_to_rife") -- To Gun
 			self.WElements["Crescent Rose"].modelEnt:ResetSequence("fold_to_rife") -- To Gun
 			self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: Gun Mode, "..tostring(self.Gun))
+			
+			-- self.Owner:ManipulateBonePosition(BoneIndx1, Vector(0, 0, 0))
+			-- self.Owner:ManipulateBonePosition(BoneIndx2, Vector(0, 0, 0))
 	else
 			self.Gun = true 
 			self.VElements["Crescent Rose"].modelEnt:ResetSequence("unfold_from_fifle") -- To Melee
 			self.WElements["Crescent Rose"].modelEnt:ResetSequence("unfold_from_fifle") -- To Melee
 			self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: Gun Mode, "..tostring(self.Gun))
+			
+			-- self.Owner:ManipulateBonePosition(BoneIndx1, Vector(2, 0, 0))
+			-- self.Owner:ManipulateBonePosition(BoneIndx2, Vector(0, 2, 0))
 	end	
 end

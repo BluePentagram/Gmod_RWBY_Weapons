@@ -18,9 +18,6 @@
 		and only have to be visible to the client.
 ********************************************************/
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "init.lua" )
-
 function SWEP:Initialize()
 
 	// other initialize code goes here
@@ -498,6 +495,34 @@ if CLIENT then
 	
 end
 
+/*--------------
+   End of SCK
+--------------*/
+
+if SERVER then // init.
+
+	AddCSLuaFile()
+	SWEP.Weight = 5
+	SWEP.AutoSwitchTo = true
+	SWEP.AutoSwitchFrom = true
+	
+elseif CLIENT then // cl_init
+
+	-- include()
+	SWEP.PrintName = "Crescent Rose"
+	SWEP.Slot = 5
+	SWEP.SlotPos = 20
+	SWEP.DrawAmmo = false
+	SWEP.DrawCrosshair = false
+	
+	function SWEP:DrawHUD()
+		local x = 20
+		local y = ScrH() - 20
+		draw.SimpleText("This is a 'WIP' Weapon of the "..self.PrintName..". Gun Mode? "..tostring(self.Gun),"Default",x, y,Color(194,30,86,255))
+	end
+end
+
+
 SWEP.HoldType = "melee2"
 SWEP.ViewModelFOV = 70
 SWEP.ViewModelFlip = false
@@ -518,11 +543,6 @@ SWEP.WElements = {
 
 -------------------------------------------
 
-
-SWEP.PrintName = "Crescent Rose"
-SWEP.DrawAmmo = false
-SWEP.DrawCrosshair = true
-
 SWEP.Author = "Blue-Pentagram"
 SWEP.Instructions = ""
 SWEP.Contact = ""
@@ -533,10 +553,10 @@ SWEP.AdminOnly = true
 SWEP.Gun = false
 SWEP.ReloadFunc = 0
 
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
+SWEP.Primary.ClipSize = 6
+SWEP.Primary.DefaultClip = 6
 SWEP.Primary.Automatic = false
-SWEP.Primary.Ammo = "none"
+SWEP.Primary.Ammo = "Pistol"
 
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
@@ -576,11 +596,11 @@ function SWEP:Think()
 	else
 		self:SetWeaponHoldType( "crossbow" )
 		
-		GunP.x = 14.5
-		GunP.y = 0
-		GunP.z = 0
+		GunP.x = 15.300000190735
+		GunP.y = 0.5
+		GunP.z = -2
 		
-		GunA.x = 0
+		GunA.x = -9
 		GunA.y = 0
 		GunA.z = 180
 		
@@ -590,10 +610,9 @@ end
 function SWEP:PrimaryAttack()
 	if !self.Gun then return end
 	self:EmitSound("weapons/sg552/sg552-1.wav")
-	self:ShootBullet( 100, 1, 0)
 	self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
-	if SERVER then return end
 	self.Owner:ViewPunch( Angle( -10, 0, 0 ) )
+	self:Shoot( 100, 1, 0)
   -- if ( !self:CanPrimaryAttack() ) then return end
   -- self:TakePrimarymmo( 1 )
 end
@@ -623,4 +642,23 @@ function SWEP:ChangeMode()
 			-- self.Owner:ManipulateBonePosition(BoneIndx1, Vector(2, 0, 0))
 			-- self.Owner:ManipulateBonePosition(BoneIndx2, Vector(0, 2, 0))
 	end	
+end
+
+function SWEP:Shoot( damage, num_bullets, aimcone )
+
+	local bullet = {}
+
+	bullet.Num 	= num_bullets
+	bullet.Src 	= self.Owner:GetShootPos()
+	bullet.Dir 	= self.Owner:GetAimVector() 
+	bullet.Spread 	= Vector( aimcone, aimcone, 0 )	
+	bullet.Tracer	= 5
+	bullet.Force	= 1 
+	bullet.Damage	= damage
+	bullet.AmmoType = "Pistol"
+
+	self.Owner:FireBullets( bullet )
+
+	self:ShootEffects()
+
 end

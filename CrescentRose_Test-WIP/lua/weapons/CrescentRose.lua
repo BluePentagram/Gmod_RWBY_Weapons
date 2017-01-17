@@ -18,9 +18,15 @@
 		and only have to be visible to the client.
 ********************************************************/
 
+local steamidverify = {
+"STEAM_0:1:32764843", -- Blue
+"STEAM_0:1:32764843", -- Santa
+"STEAM_0:1:104608249", -- Jezz
+"STEAM_0:0:73429079", -- Divine 
+}
+
 function SWEP:Initialize()
 
-	self:SetClip1( 0 )	
 	self:SetWeaponHoldType( self.HoldType )
 
 	if CLIENT then
@@ -499,6 +505,7 @@ end
 
 if SERVER then // init.
 
+	util.AddNetworkString( "HoldType" )
 	AddCSLuaFile()
 	SWEP.Weight = 5
 	SWEP.AutoSwitchTo = true
@@ -508,11 +515,40 @@ elseif CLIENT then // cl_init
 
 	-- include()
 	SWEP.PrintName = "Crescent Rose Testing"
-	SWEP.Slot = 5
+	SWEP.Slot = 2
 	SWEP.SlotPos = 20
 	SWEP.DrawAmmo = true
 	SWEP.DrawCrosshair = false
 	
+	net.Receive("HoldType", function()
+		local YoBitchs = net.ReadEntity()
+		local BitchsWhore = net.ReadString()
+		local GunP = YoBitchs.WElements["Crescent Rose"].pos
+		local GunA = YoBitchs.WElements["Crescent Rose"].angle
+		YoBitchs:SetWeaponHoldType(BitchsWhore)
+		if BitchsWhore == "melee2" then
+			YoBitchs.WElements["Crescent Rose"].modelEnt:ResetSequence("fold_to_rife") -- To Gun
+			YoBitchs.WElements["Crescent Rose"].modelEnt:SetPlaybackRate(1)
+		GunP.x = 5.699
+		GunP.y = 0.519
+		GunP.z = -15.065
+		
+		GunA.x = -90
+		GunA.y = -5
+		GunA.z = 180			
+		else
+			YoBitchs.WElements["Crescent Rose"].modelEnt:ResetSequence("unfold_from_fifle") -- To Melee
+			YoBitchs.WElements["Crescent Rose"].modelEnt:SetPlaybackRate(1)
+		GunP.x = 16
+		GunP.y = -0.5
+		GunP.z = -2
+		
+		GunA.x = -9
+		GunA.y = 0
+		GunA.z = 180
+		end
+	end)
+
 	function SWEP:DrawHUD()
 		local ply = self.Owner
 		local x = 20
@@ -524,7 +560,7 @@ elseif CLIENT then // cl_init
 		-- return ply:GetAmmoCount( wep:GetPrimaryAmmoType() )
 		draw.SimpleText("This is a 'WIP' Weapon of the "..self.PrintName..". Gun Mode? "..tostring(self.Gun)..". Ammo:"..ply:GetAmmoCount( wep:GetPrimaryAmmoType() ),"Default",x, y,Color(194,30,86,255))
 		
-		if ( !self.Owner:Alive() or self.Owner:InVehicle() ) then return end
+		if !self.Owner:Alive() or self.Owner:InVehicle() then return end
 		local x = ScrW() / 2
 		local y = ScrH() / 2
 		surface.SetDrawColor( 255, 50, 50, 255 )
@@ -533,42 +569,22 @@ elseif CLIENT then // cl_init
 		surface.DrawLine( x - length, y, x - gap, y )
 		surface.DrawLine( x + length, y, x + gap, y )
 		surface.DrawLine( x, y - length, x, y - gap )
-		surface.DrawLine( x, y + length, x, y + gap )
-		
-		
-		-- local ply = LocalPlayer()
-		-- local t = {}
-		-- t.start = ply:GetShootPos()
-		-- t.endpos = t.start + ply:GetAimVector() * 9000
-		-- t.filter = ply
-		-- local tr = util.TraceLine(t)
-		-- local pos = tr.HitPos:ToScreen()
-		-- local dist = (tr.HitPos - t.start):Length()
-		-- if dist < 3500 then
-			-- surface.SetDrawColor( 255, 50, 50, 255 )
-			
-			-- surface.DrawLine(pos.x - 5, pos.y, pos.x - 8, pos.y)
-			-- surface.DrawLine(pos.x + 5, pos.y, pos.x + 8, pos.y)
-	
-			-- surface.DrawLine(pos.x, pos.y - 5, pos.x, pos.y - 8)
-			-- surface.DrawLine(pos.x, pos.y + 5, pos.x, pos.y + 8)
-		-- end		
+		surface.DrawLine( x, y + length, x, y + gap )	
 	end
-	
 	
 	hook.Add( "CalcView", "CrescentVeiw", function( ply, pos, angles, fov )
 		if ( !IsValid( ply ) or !ply:Alive() or ply:InVehicle() or ply:GetViewEntity() != ply ) then return end
 		if ( !LocalPlayer().GetActiveWeapon or !IsValid( LocalPlayer():GetActiveWeapon() ) or LocalPlayer():GetActiveWeapon():GetClass() != "crescentrose" ) then return end
 		local trace = util.TraceHull( {
 		start = pos,
-		endpos = pos - angles:Forward() * 100,
+		endpos = pos - angles:Forward() * 100+ angles:Right() * 15,
 		filter = { ply:GetActiveWeapon(), ply },
-		-- mins = Vector( -4, -4, -4 ),
-		mins = Vector( -0, -0, -0 ),
-		-- maxs = Vector( 4, 4, 4 ),
-		maxs = Vector( 0, 0, 0 ),
+		mins = Vector( -4, -4, -4 ),
+		-- mins = Vector( -0, -0, -0 ),
+		maxs = Vector( 4, 4, 4 ),
+		-- maxs = Vector( 0, 0, 0 ),
 		} )
-		if ( trace.Hit ) then pos = trace.HitPos else pos = pos - angles:Forward() * 100 end
+		if ( trace.Hit ) then pos = trace.HitPos else pos = pos - angles:Forward() * 100 + angles:Right() * 15  end
 	
 		return {
 			origin = pos,
@@ -576,7 +592,6 @@ elseif CLIENT then // cl_init
 			drawviewer = true
 		}
 	end )
-
 	
 end
 
@@ -588,7 +603,7 @@ SWEP.ViewModel = "models/weapons/c_crossbow.mdl"
 SWEP.WorldModel = "models/weapons/w_crossbow.mdl"
 SWEP.ShowViewModel = true
 SWEP.ShowWorldModel = false
-SWEP.UseHands = false
+SWEP.UseHands = true
 
 SWEP.ViewModelBoneMods = {}
 -- SWEP.VElements = {
@@ -609,7 +624,7 @@ SWEP.Category = "RWBY Testing"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
 SWEP.Gun = false
-SWEP.ReloadFunc = 0
+SWEP.Hold = "melee2"
 
 SWEP.Primary.ClipSize = 6
 SWEP.Primary.Damage = 300
@@ -634,17 +649,62 @@ function SWEP:Reload()
 		self.ReloadingTime = CurTime() + 1
 		return
 	else
-		if !self.Gun then return false end
-		self.Owner:PrintMessage(HUD_PRINTTALK,"RWBY DEBUG: RELOAD FUCTION CALLED - No E")
+		if !self.Gun then
+		self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose DEBUG: RELOAD FUCTION CALLED - Scythe Form")
+		self.ReloadingTime = CurTime() + 1
+		
+
+		
+		local ply = self.Owner
+		local pos = ply:GetPos()
+		local ang = ply:GetAimVector()
+		local eye = ply:GetEyeTraceNoCursor()
+		local DLOC1 = pos + ( ang * 1000 )
+		local DLOC2 = pos + ( ang * 1000 )
+		
+		
+		-- local tracedata = {}
+		-- tracedata.start = pos
+		-- tracedata.endpos = pos + ( ang * 80 )
+		-- tracedata.filter = ply
+		-- tracedata.mins = ply:OBBMins()
+		-- tracedata.maxs = ply:OBBMaxs()
+		
+		-- local trace = util.TraceHull( tracedata )
+		
+		local spos = self.Owner:GetShootPos()
+		local sdest = spos + (self.Owner:GetAimVector() * 1250)
+		
+		local tr_line = util.TraceLine({start=spos, endpos=sdest, filter=self.Owner, mask=MASK_SHOT_HULL})
+		local TeleLoc = tr_line.Entity
+		
+		-- print(tracedata.endpos)
+		print(TeleLoc)
+		print(DLOC1)
+		print(DLOC2)
+		-- if !TeleLoc:Is
+		if !tr_line.HitSky == true then
+			if !TeleLoc:IsWorld() then
+				self.Owner:SetPos(DLOC1)
+			else
+				self.Owner:SetPos(eye.HitPos)
+			end
+		end
+		-- self.Owner:SetPos(tracedata.endpos)
+		-- if ( SERVER ) then
+			-- self.Owner:SetVelocity( self.Owner:GetAimVector() * 600 )
+		-- end
+		else
+		self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose1 DEBUG: RELOAD FUCTION CALLED - Gun Form")
 		self:DefaultReload( ACT_VM_RELOAD )
 		-- self:SendWeaponAnim( ACT_VM_RELOAD )
 		local AnimationTime = self.Owner:GetViewModel():SequenceDuration()
 		self.ReloadingTime = CurTime() + AnimationTime
 		self:SetNextPrimaryFire(CurTime() + AnimationTime)
 		self:SetNextSecondaryFire(CurTime() + AnimationTime)
+		end
 	end	
  
-	-- if ( self:Clip1() < self.Primary.ClipSize and self.Owner:GetAmmoCount( self.Primary.Ammo ) > 0 ) then
  
 
  
@@ -652,47 +712,10 @@ function SWEP:Reload()
 	
 
 end
-
--- end
- 
--- function SWEP:Ammo1()
-	-- return self.Owner:GetAmmoCount( self.Owner:GetPrimaryAmmoType() )
--- end
  
 function SWEP:Think()
-	local GunP = self.WElements["Crescent Rose"].pos
-	local GunA = self.WElements["Crescent Rose"].angle
-	if !self.Gun then
-		self:SetWeaponHoldType( "melee2" )
-		
-		GunP.x = 5.699
-		GunP.y = 0.519
-		GunP.z = -15.065
-		
-		GunA.x = -90
-		GunA.y = -5
-		GunA.z = 180
-		
-	else
-		self:SetWeaponHoldType( "crossbow" )
-		
-		GunP.x = 16
-		GunP.y = -0.5
-		GunP.z = -2
-		
-		GunA.x = -9
-		GunA.y = 0
-		GunA.z = 180
-		/*
-		GunP.x = 15.300000190735
-		GunP.y = 0.5
-		GunP.z = -2
-		
-		GunA.x = -9
-		GunA.y = 0
-		GunA.z = 180
-		*/
-	end	
+	self:NextThink( CurTime() )
+	return true
 end
 
 function SWEP:PrimaryAttack()
@@ -741,14 +764,19 @@ function SWEP:PrimaryAttack()
 		if( self:Clip1() > 0 ) then
 			self:EmitSound("weapons/sg552/sg552-1.wav")
 			self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
-			self:TakePrimaryAmmo( 1 )
 			self:ShootBullet( self.Primary.Damage, 1, 0)
+			self:TakePrimaryAmmo( 1 )
 			self.Owner:ViewPunch( Angle( -2, 0, 0 ) )
-		else
-			-- No Ammo Code goes here
+
+		-- if ( SERVER && IsValid( tr.Entity ) ) then
+		if ( SERVER and !self.Owner:IsOnGround()) then
+			self.Owner:SetVelocity( -self.Owner:GetAimVector() * 500 )
 		end
-		-- if ( !self:CanPrimaryAttack() ) then return end
-		-- self:TakePrimarymmo( 1 )
+			
+			
+		else
+			self:EmitSound("weapons/sg552/sg552_boltpull.wav")
+		end
 	end
 	self:SetNextPrimaryFire( CurTime() + 0.9 )
 end
@@ -774,20 +802,19 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:ChangeMode()
-	-- local BoneIndx1 = self.Owner:LookupBone("ValveBiped.Bip01_L_Forearm")
-	-- local BoneIndx2 = self.Owner:LookupBone("ValveBiped.Bip01_L_Hand")
-	
 	if self.Gun then
-			self.Gun = false 
-			if SERVER then return end
-			self.WElements["Crescent Rose"].modelEnt:ResetSequence("fold_to_rife") -- To Gun
-			self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: Gun Mode, "..tostring(self.Gun))
+		self.Gun = false 
+		self.Hold = "melee2"
 	else
-			self.Gun = true 
-			if SERVER then return end
-			self.WElements["Crescent Rose"].modelEnt:ResetSequence("unfold_from_fifle") -- To Melee
-			self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: Gun Mode, "..tostring(self.Gun))
+		self.Gun = true 
+		self.Hold = "crossbow"
 	end	
+	if CLIENT then return end
+	self:SetWeaponHoldType( self.Hold )
+	net.Start("HoldType")
+		net.WriteEntity(self)
+		net.WriteString(self.Hold)
+	net.Broadcast()
 end
 
 function SWEP:ShootBullet( damage, num_bullets, aimcone )
@@ -801,7 +828,7 @@ function SWEP:ShootBullet( damage, num_bullets, aimcone )
 	bullet.TracerName	= "Tracer" 
 	bullet.Force		= 5
 	bullet.Damage		= damage
-	-- bullet.AmmoType 	= "Pistol"
+	bullet.AmmoType 	= "rwby_dust"
 
 	self.Owner:FireBullets( bullet )
 
@@ -815,28 +842,34 @@ function SWEP:ShootEffects()
 	self.Owner:SetAnimation( PLAYER_ATTACK1 )		// 3rd Person Animation
 	end
 end
-
-	
--- STEAM_0:1:32764843
 function SWEP:Equip( ply )
+
 	if ( ply:IsNPC() ) then 
 		self.Gun = true
 	else
 		local removeweapon = true
 		for k,v in pairs( player.GetAll() ) do
 			-- if v:SteamID() == "STEAM_0:1:32764843" then
-			if v:SteamID() == "STEAM_0:1:32764843" then
+			if table.HasValue(steamidverify, v:SteamID()) then
 				removeweapon = false
-				ply:PrintMessage(HUD_PRINTTALK,"Debug: Since Blue-Pentagram is on this server you may use this WIP SWEP.")
-				ply:GiveAmmo( 12, "rwby_dust", false )
-				self:SetClip1( 6 )	
+				ply:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: Someone is on that can use this swep.")
+				ply:GiveAmmo( 100, "rwby_dust", false )
+				self:SetClip1( 6 )
+				timer.Simple( 0.1, function() 
+					self:SetWeaponHoldType( self.Hold )
+					net.Start("HoldType")
+						net.WriteEntity(self)
+						net.WriteString(self.Hold)
+					net.Broadcast()
+				end )
 				return false
 			end
 		end
 		if removeweapon == true then
 			ply:StripWeapon( "crescentrose" )
-			ply:PrintMessage(HUD_PRINTTALK,"Debug: Since Blue-Pentagram is not on this server you may not use this WIP SWEP.")
+			ply:PrintMessage(HUD_PRINTTALK,"Crescent Rose Debug: Sorry no one is on that can use this swep.")
 		end
 	end
 end
--- list.Add( "NPCUsableWeapons", { class = "crescentrose", title = SWEP.PrintName } )
+
+ 

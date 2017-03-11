@@ -15,9 +15,9 @@ game.AddAmmoType {
 print("RWBY DEBUG: AUTORUN SCRIPT IS RUNNING")
 
 local version = "0.1.0"
-http.Fetch("www.google.com", function( body, len, headers, code)
-	if GetConVar("DeathNote_Update_Messege"):GetBool() then
-	local githubversion = body
+function VersionCheck()
+	http.Fetch("https://raw.githubusercontent.com/BluePentagram/Gmod_Crescent_Rose/master/version.txt", function( body, len, headers, code)
+		local githubversion = body
 		if githubversion > version then 
 			if SERVER then
 				print("Crescent Rose: Crescent Rose version is different, Server Vesion: "..version..", Github Vesion: "..githubversion)
@@ -29,5 +29,6 @@ http.Fetch("www.google.com", function( body, len, headers, code)
 		elseif githubversion < version then
 			print("Crescent Rose: Crescent Rose Useing Beta Github version, Beta Vesion: "..version)
 		end
-	end
-end)
+	end)
+end
+timer.Simple(5, function() VersionCheck() end) 

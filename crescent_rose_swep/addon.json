@@ -1,0 +1,11 @@
+{
+	"title"		:	"Crescent Rose", 
+	"type"		:	"weapon", 
+	"tags"		:	[ "fun", "cartoon" ], 
+	"ignore"	:
+	[
+		"*.psd", 
+		"*.vcproj", 
+		"*.svn*"
+	]
+}

@@ -1,11 +1,5 @@
 
 
-local steamidverify = {
-"STEAM_0:1:32764843", -- Blue
-"STEAM_0:1:32764843", -- Santa
-"STEAM_0:1:104608249", -- Jezz
-"STEAM_0:0:73429079", -- Divine 
-}
 if SERVER then
  	
 	AddCSLuaFile()
@@ -21,18 +15,6 @@ if SERVER then
 		if (phys:IsValid()) then
 			phys:Wake()
 		end
-		
-		local remove = true
-		for k,v in pairs( player.GetAll() ) do
-			if table.HasValue(steamidverify, v:SteamID()) then
-				remove = false
-				return false
-			end
-			if remove == true then
-				self:Remove()
-			end
-		end		
-
 	end
 	
 	function ENT:Use( activator, caller )
@@ -56,4 +38,4 @@ ENT.PrintName 		= "Dust Ammo"
 ENT.Author 			= "Blue-Pentagram"
 ENT.Spawnable 		= true
 ENT.AdminOnly		= false
-ENT.Category 		= "RWBY - Test"
+ENT.Category 		= "RWBY"

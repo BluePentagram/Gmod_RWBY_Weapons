@@ -33,10 +33,17 @@ if SERVER then
 	function ENT:AcceptInput(ply, caller)
 		if caller:IsPlayer() && !self.animationdoing && !self.animationstart then
 			if caller:IsValid() then
-				DustGive = math.random(1,30) 
+				local ran1,ran2 = 1,50
+				DustGive = math.random(ran1,ran2) 
 				caller:GiveAmmo( DustGive, "rwby_dust", false )
+				DustGive = math.random(ran1,ran2) 
+				caller:GiveAmmo( DustGive, "rwby_dust_fire", false )
+				DustGive = math.random(ran1,ran2) 
+				caller:GiveAmmo( DustGive, "rwby_dust_electric", false )
+				DustGive = math.random(ran1,ran2) 
+				caller:GiveAmmo( DustGive, "rwby_dust_gravity", false )
+				self.animationstart = true
 			end
-			self.animationstart = true
 		end
 	end
 	
@@ -66,8 +73,40 @@ if SERVER then
 	end
 
 elseif CLIENT then // This is where the cl_init.lua stuff goes
+	surface.CreateFont( "DustFont_Crate", {
+	font = "Default",
+	extended = false,
+	size = 120,
+	weight = 400,
+	antialias = true,
+	} )
 	function ENT:Draw()
+		local ply = LocalPlayer()
+		local Pos = self:GetPos()
+		local Ang = self:GetAngles()
 		self:DrawModel()
+		Ang:RotateAroundAxis(Ang:Right(), 90)
+		Ang:RotateAroundAxis(Ang:Forward(), 180)
+		Ang:RotateAroundAxis(Ang:Up(), -90)
+		-- if(ply:GetPos():Distance(Pos) < 300) then
+			cam.Start3D2D( Pos + Ang:Up() * 16+ -Ang:Right() * 15, Ang , 0.10 )
+				draw.DrawText("Dust", "DustFont_Crate", 0, 0, Color(200, 25, 25, 255), TEXT_ALIGN_CENTER )
+				local texture = surface.GetTextureID("vgui/rwbyicons/dust_fire")
+				for i=1,3 do 
+					if i == 1 then
+						texture = surface.GetTextureID("vgui/rwbyicons/dust_fire") 
+					elseif i == 2 then
+						texture = surface.GetTextureID("vgui/rwbyicons/dust_electric") 
+					else 
+						texture = surface.GetTextureID("vgui/rwbyicons/dust_gravity")
+					end
+					surface.SetTexture(texture)
+					surface.SetDrawColor(0,0,0,255)
+					surface.DrawTexturedRect(-300 + (i * 120),120,128,128)
+
+				end 
+			cam.End3D2D()
+		-- end
 	end
 end
   

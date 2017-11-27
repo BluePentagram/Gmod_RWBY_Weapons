@@ -1,6 +1,6 @@
 "UnlitGeneric"
 {
-	"$basetexture" "vgui/entities/crescentrose"
+	"$basetexture" "vgui/entities/crescentrose_weapon_select"
 	"$nolod" 1
 	"$vertexalpha" 1
 	"$vertexcolor" 1

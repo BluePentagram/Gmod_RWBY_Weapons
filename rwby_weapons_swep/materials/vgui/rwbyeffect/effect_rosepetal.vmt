@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+	"$basetexture" 		"vgui/rwbyeffect/effect_rosepetal"
+	"$ignorez"			1
+	"$vertexcolor" 		1
+	"$vertexalpha" 		1
+	"$nolod" 			1
+}

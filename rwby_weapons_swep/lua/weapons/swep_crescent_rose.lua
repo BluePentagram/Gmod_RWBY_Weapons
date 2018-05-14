@@ -54,8 +54,6 @@ elseif CLIENT then // cl_init
 		local x = 20
 		local y = ScrH() - 20
 		-- draw.SimpleText("This is a 'WIP' Weapon of the "..self.PrintName..". Gun Mode? "..tostring(self.Gun)..". Ammo Type:"..self.Primary.Ammo,"Default",x, y,Color(194,30,86,255))
-		-- draw.SimpleText(CresCamPoa,"Default",x, y - 20,Color(194,30,86,255))
-		draw.SimpleText(ply:GetVelocity():Length(),"Default",x, y - 20,Color(194,30,86,255))
 		
 		if self.Zoomed then
 			surface.SetDrawColor( RedColor )
@@ -134,27 +132,6 @@ elseif CLIENT then // cl_init
 			surface.DrawLine(pos.x, pos.y - 5, pos.x, pos.y - 8)
 			surface.DrawLine(pos.x, pos.y + 5, pos.x, pos.y + 8)
 		end
-
-	hook.Add( "CalcView", "CresCamera", function( ply, pos, angles, fov )
-		if ( !IsValid( ply ) or !ply:Alive() or ply:InVehicle() or ply:GetViewEntity() != ply ) then return end
-		if ( !LocalPlayer().GetActiveWeapon or !IsValid( LocalPlayer():GetActiveWeapon() ) or LocalPlayer():GetActiveWeapon():GetClass() != "swep_crescent_rose" or LocalPlayer():GetActiveWeapon().Zoomed ) then return end
-		local trace = util.TraceHull( {
-		start = pos,
-		endpos = pos - angles:Forward() * 100 + angles:Right() * 15,
-		filter = { ply:GetActiveWeapon(), ply },
-		mins = Vector( -4, -4, -4 ),
-		maxs = Vector( 4, 4, 4 ),
-		} )
-		local traent = trace.Entity
-		if ( trace.HitWorld or traent:IsPlayer() or traent:IsNPC() or trace.Hit ) then pos = trace.HitPos else pos = pos - angles:Forward() * 100 + angles:Right() * 15  end
-	
-		return {
-			origin = pos,
-			angles = angles,
-			drawviewer = true
-		}
-	end )
-	
 	
 	function SWEP:DrawWeaponSelection( x, y, wide, tall, alpha )
 		surface.SetDrawColor( 255, 255, 255, alpha )
@@ -175,18 +152,20 @@ end
 SWEP.HoldType = "melee2"
 SWEP.ViewModelFOV = 70
 SWEP.ViewModelFlip = false
-SWEP.ViewModel = "models/weapons/c_crossbow.mdl"
+SWEP.ViewModel = "models/weapons/c_crowbar.mdl"
+SWEP.ViewModel2 = "models/weapons/c_crossbow.mdl"
 SWEP.WorldModel = "models/weapons/w_crossbow.mdl"
-SWEP.ShowViewModel = true
+SWEP.ShowViewModel = false
 SWEP.ShowWorldModel = false
 SWEP.UseHands = true
 
 SWEP.ViewModelBoneMods = {
-	["ValveBiped.Base"] = { scale = Vector(1, 1, 1), pos = Vector(-30, 0, 0), angle = Angle(0, 0, 0) }
+	-- ["ValveBiped.Base"] = { scale = Vector(1, 1, 1), pos = Vector(-30, 0, 0), angle = Angle(0, 0, 0) }
 }
--- SWEP.VElements = {
-	-- ["Crescent Rose"] = { type = "Model", model = "models/blueflytrap/rwby/crescent_rose.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(6.75, 0.5, -15), angle = Angle(-90, -5, 180), size = Vector(0.5, 0.5, 0.5), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} }
--- }
+SWEP.VElements = {
+	["Crescent Rose Scythe"] = { type = "Model", model = "models/blueflytrap/rwby/crescent_rose.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(6.75, 0.5, -15), angle = Angle(-90, -5, 180), size = Vector(0.5, 0.5, 0.5), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["Crescent Rose Rife"] = { type = "Model", model = "models/blueflytrap/rwby/crescent_rose.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(-38.94, 23.01, -7.08), angle = Angle(-178.41, 38.23, -90), size = Vector(0.5, 0.5, 0.5), color = Color(255, 255, 255, 0), surpresslightning = false, material = "", skin = 0, bodygroup = {} }
+}
 SWEP.WElements = {
 	["Crescent Rose"] = { type = "Model", model = "models/blueflytrap/rwby/crescent_rose.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(5.699, 0.519, -15.065), angle = Angle(-87, 0, 180), size = Vector(0.5, 0.5, 0.5), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} }
 }
@@ -266,27 +245,27 @@ function SWEP:PrimaryAttack()
 	
 
 		if IsValid(hitEnt) or tr_main.HitWorld then
-			self.Weapon:SendWeaponAnim( ACT_VM_HITCENTER )
-			if not (CLIENT and (not IsFirstTimePredicted())) then
-				local edata = EffectData()
-				edata:SetStart(spos)
-				edata:SetOrigin(tr_main.HitPos)
-				edata:SetNormal(tr_main.Normal)
-				edata:SetSurfaceProp(tr_main.SurfaceProps)
-				edata:SetHitBox(tr_main.HitBox)
-				--edata:SetDamageType(DMG_CLUB)
-				edata:SetEntity(hitEnt)
-					if hitEnt:IsPlayer() or hitEnt:GetClass() == "prop_ragdoll" or hitEnt:IsNPC() then
-						util.Effect("BloodImpact", edata)
-						self.Owner:LagCompensation(false)
-						self.Owner:FireBullets({Num=1, Src=spos, Dir=self.Owner:GetAimVector(), Spread=Vector(0,0,0), Tracer=0, Force=1, Damage=self.Secondary.Damage})
-					else
-						util.Effect("Impact", edata)
-					end
+		self.Weapon:SendWeaponAnim( ACT_VM_HITCENTER )
+		if not (CLIENT and (not IsFirstTimePredicted())) then
+			local edata = EffectData()
+			edata:SetStart(spos)
+			edata:SetOrigin(tr_main.HitPos)
+			edata:SetNormal(tr_main.Normal)
+			edata:SetSurfaceProp(tr_main.SurfaceProps)
+			edata:SetHitBox(tr_main.HitBox)
+			--edata:SetDamageType(DMG_CLUB)
+			edata:SetEntity(hitEnt)
+				if hitEnt:IsPlayer() or hitEnt:GetClass() == "prop_ragdoll" or hitEnt:IsNPC() then
+					util.Effect("BloodImpact", edata)
+					self.Owner:LagCompensation(false)
+					self.Owner:FireBullets({Num=1, Src=spos, Dir=self.Owner:GetAimVector(), Spread=Vector(0,0,0), Tracer=0, Force=1, Damage=self.Secondary.Damage})
+				else
+					util.Effect("Impact", edata)
 				end
-			else
-				self.Weapon:SendWeaponAnim( ACT_VM_MISSCENTER )
 			end
+		else
+			self.Weapon:SendWeaponAnim( ACT_VM_MISSCENTER )
+		end
 
 	self.Owner:LagCompensation(false)
 	else
@@ -389,11 +368,8 @@ end
 
 function SWEP:CresentRoseWeaponScope()
    if self:GetNextSecondaryFire() > CurTime() then return end
-
    local bRosesights = not self.Zoomed
-
    self.Zoomed = bRosesights 
-
    if SERVER then
 		self.Zoomed = bRosesights
 		if self.Zoomed then
@@ -402,13 +378,11 @@ function SWEP:CresentRoseWeaponScope()
 			self.Owner:SetFOV( 0, 0.3 )
 		end
    end
-
    self:SetNextSecondaryFire( CurTime() + 0.3)
 end
 
 function SWEP:Think()
 	-- self.Owner:NextThink( CurTime() )
-	-- if self.Owner:KeyDown(IN_USE) and self.Owner:KeyDown(IN_SPEED) and (self.Owner:KeyDown(IN_FORWARD) or self.Owner:KeyDown(IN_BACK) or self.Owner:KeyDown(IN_MOVELEFT) or self.Owner:KeyDown(IN_MOVERIGHT))then
 	if self.Owner:GetVelocity():Length() > 650 then
 		local OurEnt = self.Owner
 		local part = EffectData()
@@ -421,7 +395,6 @@ function SWEP:Think()
 		end 
 	end
 	-- return true;
-	-- draw.SimpleText(tostring(self.Owner:GetVelocity():Length() > 0),"Default",x, y - 20,Color(194,30,86,255))
 end
 
 function SWEP:AdjustMouseSensitivity()
@@ -434,9 +407,15 @@ function SWEP:ChangeMode()
 	if self.Gun then
 		self.Gun = false 
 		self.Hold = "melee2"
+		self.Owner:GetViewModel( 0 ):SetWeaponModel( self.ViewModel, self )
+		if CLIENT then
+			self.VElements["Crescent Rose Rife"].color.a = 0
+			self.VElements["Crescent Rose Scythe"].color.a = 255
+		end
 	else
 		self.Gun = true 
 		self.Hold = "crossbow"
+		CrescentToGun(self)
 	end	
 	if CLIENT then return end
 	self:SetWeaponHoldType( self.Hold )
@@ -444,6 +423,16 @@ function SWEP:ChangeMode()
 		net.WriteEntity(self)
 		net.WriteString(self.Hold)
 	net.Broadcast()
+end
+
+function CrescentToGun(self)
+	self.Owner:GetViewModel( 0 ):SetWeaponModel( self.ViewModel2, self )
+	if CLIENT then
+		self.VElements["Crescent Rose Rife"].modelEnt:ResetSequence("unfold_from_fifle")
+		self.VElements["Crescent Rose Rife"].modelEnt:SetPlaybackRate(1)
+		self.VElements["Crescent Rose Rife"].color.a = 255
+		self.VElements["Crescent Rose Scythe"].color.a = 0
+	end
 end
 
 function SWEP:ShootBullet( damage, num_bullets, aimcone )
@@ -474,6 +463,18 @@ function SWEP:ShootEffects()
 end
 
 function SWEP:Deploy()
+	BaseClass.Deploy( self )
+	if self.Gun then
+		CrescentToGun(self)
+	end
+	if CLIENT and IsValid(self.Owner) then
+		local vm = self.Owner:GetViewModel()
+		if IsValid(vm) then
+			self:ResetBonePositions(vm)
+			vm:SetColor(Color(0,0,0,1))
+			vm:SetMaterial("models/effects/vol_light001")
+		end
+	end
 	if SERVER then
 		timer.Simple( 0.1, function() 
 			if self.First then self.First = false return end

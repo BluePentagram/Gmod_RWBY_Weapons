@@ -41,12 +41,16 @@ function SWEP:Initialize()
 				// Init viewmodel visibility
 				if (self.ShowViewModel == nil or self.ShowViewModel) then
 					vm:SetColor(Color(255,255,255,255))
+					-- vm:SetMaterial("Debug/hsv")			
+					-- vm:SetColor(Color(255,0,255,1))
 				else
 					// we set the alpha to 1 instead of 0 because else ViewModelDrawn stops being called
 					vm:SetColor(Color(255,255,255,1))
 					// ^ stopped working in GMod 13 because you have to do Entity:SetRenderMode(1) for translucency to kick in
 					// however for some reason the view model resets to render mode 0 every frame so we just apply a debug material to prevent it from drawing
-					vm:SetMaterial("Debug/hsv")			
+					-- vm:SetMaterial("Debug/hsv")			
+					-- vm:SetMaterial("models/debug/hsv")			
+					vm:SetMaterial("models/effects/vol_light001")			
 				end
 			end
 		end
@@ -55,11 +59,28 @@ function SWEP:Initialize()
 
 end
 
+function SWEP:Deploy()
+	if IsValid(self.Owner) then
+		local vm = self.Owner:GetViewModel()
+		if IsValid(vm) then
+			-- self:ResetBonePositions(vm)
+			if (self.ShowViewModel == nil or self.ShowViewModel) then
+				vm:SetColor(Color(255,255,255,255))
+			else
+				vm:SetColor(Color(255,255,255,1))		
+				vm:SetMaterial("models/effects/vol_light001")			
+			end
+		end
+	end
+end
+
 function SWEP:Holster()
 	if CLIENT and IsValid(self.Owner) then
 		local vm = self.Owner:GetViewModel()
 		if IsValid(vm) then
 			self:ResetBonePositions(vm)
+			vm:SetColor(Color(255,255,255,1))
+			vm:SetMaterial()
 		end
 	end
 	

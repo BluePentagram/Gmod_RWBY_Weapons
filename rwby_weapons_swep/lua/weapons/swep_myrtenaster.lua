@@ -63,25 +63,6 @@ elseif CLIENT then // cl_init
 			surface.DrawLine(pos.x, pos.y + 5, pos.x, pos.y + 8)
 		end
 
-	hook.Add( "CalcView", "MyrtCameroa", function( ply, pos, angles, fov )
-		if ( !IsValid( ply ) or !ply:Alive() or ply:InVehicle() or ply:GetViewEntity() != ply ) then return end
-		if ( !LocalPlayer().GetActiveWeapon or !IsValid( LocalPlayer():GetActiveWeapon() ) or LocalPlayer():GetActiveWeapon():GetClass() != "swep_myrtenaster" ) then return end
-		local trace = util.TraceHull( {
-		start = pos,
-		endpos = pos - angles:Forward() * MyrtCamPos + angles:Right() * 15,
-		filter = { ply:GetActiveWeapon(), ply },
-		mins = Vector( -4, -4, -4 ),
-		maxs = Vector( 4, 4, 4 ),
-		} )
-		local traent = trace.Entity
-		if ( trace.HitWorld or traent:IsPlayer() or traent:IsNPC() or trace.Hit ) then pos = trace.HitPos else pos = pos - angles:Forward() * MyrtCamPos + angles:Right() * 15  end
-	
-		return {
-			origin = pos,
-			angles = angles,
-			drawviewer = true
-		}
-	end )
 end
 
 

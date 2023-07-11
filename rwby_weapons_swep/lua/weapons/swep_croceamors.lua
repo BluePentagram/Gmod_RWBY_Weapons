@@ -263,12 +263,6 @@ end
 function SWEP:AdjustMouseSensitivity()
 end
 
-function SWEP:Deploy()
-	HideVeiwModel(self:GetOwner())
-
-	return true
-end
-
 function SWEP:Equip(ply)
 	timer.Simple(0.1, function()
 		net.Start("rwby_mors_equip_hide")
@@ -291,9 +285,9 @@ function SWEP:Holster()
 	return true
 end
 
-local BoneOne, BoneTwo
+local BoneOne, BoneTwo, BoneVar, HideVeiwModel
 
-function BoneVar(MorsUser)
+BoneVar = function(MorsUser)
 	BoneOne = MorsUser:LookupBone("ValveBiped.Bip01_L_UpperArm")
 	BoneTwo = MorsUser:LookupBone("ValveBiped.Bip01_L_Forearm")
 end
@@ -302,7 +296,13 @@ function SWEP:ContextScreenClick()
 	return false
 end
 
-function HideVeiwModel(MorsUser)
+function SWEP:Deploy()
+	HideVeiwModel(self:GetOwner())
+
+	return true
+end
+
+HideVeiwModel = function(MorsUser)
 	if not IsValid(MorsUser) then return end
 	MorsUser:GetViewModel():SetColor(Color(0, 0, 0, 1))
 	MorsUser:GetViewModel():SetMaterial("models/effects/vol_light001")

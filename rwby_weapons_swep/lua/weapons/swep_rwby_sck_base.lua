@@ -33,7 +33,7 @@ function SWEP:Initialize()
 		self:CreateModels(self.WElements) // create worldmodels
 		
 		// init view model bone build function
-		if IsValid(self.Owner) then
+		if IsValid(self.Owner) and self.Owner:IsPlayer() then -- semi support for npc though npc's are not able to get weapon without another addon's help i belive
 			local vm = self.Owner:GetViewModel()
 			if IsValid(vm) then
 				self:ResetBonePositions(vm)
@@ -45,7 +45,7 @@ function SWEP:Initialize()
 					-- vm:SetColor(Color(255,0,255,1))
 				else
 					// we set the alpha to 1 instead of 0 because else ViewModelDrawn stops being called
-					vm:SetColor(Color(255,255,255,1))
+					vm:SetColor(Color(0,0,0,1))
 					// ^ stopped working in GMod 13 because you have to do Entity:SetRenderMode(1) for translucency to kick in
 					// however for some reason the view model resets to render mode 0 every frame so we just apply a debug material to prevent it from drawing
 					-- vm:SetMaterial("Debug/hsv")			
@@ -67,7 +67,7 @@ function SWEP:Deploy()
 			if (self.ShowViewModel == nil or self.ShowViewModel) then
 				vm:SetColor(Color(255,255,255,255))
 			else
-				vm:SetColor(Color(255,255,255,1))		
+				vm:SetColor(Color(0,0,0,1))		
 				vm:SetMaterial("models/effects/vol_light001")			
 			end
 		end

@@ -1,49 +1,81 @@
 
 
-AddCSLuaFile()
-AddCSLuaFile("cl_init.lua")
-game.AddAmmoType {
-	name = "rwby_dust",
-	dmgtype = DMG_BULLET,
-	tracer = TRACER_LINE,
-	plydmg = 0,
-	npcdmg = 0,
-	force = 2000,
-	minsplash = 10,
-	maxsplash = 15
-}
-game.AddAmmoType {
-	name = "rwby_dust_fire",
-	dmgtype = DMG_BULLET,
-	tracer = TRACER_LINE,
-	plydmg = 0,
-	npcdmg = 0,
-	force = 2000,
-	minsplash = 10,
-	maxsplash = 15
-}
-game.AddAmmoType {
-	name = "rwby_dust_electric",
-	dmgtype = DMG_BULLET,
-	tracer = TRACER_LINE,
-	plydmg = 0,
-	npcdmg = 0,
-	force = 2000,
-	minsplash = 10,
-	maxsplash = 15
-}
-game.AddAmmoType {
-	name = "rwby_dust_gravity",
-	dmgtype = DMG_BULLET,
-	tracer = TRACER_LINE,
-	plydmg = 0,
-	npcdmg = 0,
-	force = 2000,
-	minsplash = 10,
-	maxsplash = 15
-}
-print("RWBY Weapons: Added Custom Dust Ammo Types!")
+//AddCSLuaFile()
+//AddCSLuaFile("client/cl_rwby_weapons.lua")
+if !ConVarExists( "rwby_max_ammo_dust") then
+	CreateConVar( "rwby_max_ammo_dust", 72, {FCVAR_REPLICATED, FCVAR_ARCHIVE} )
+end
+if !ConVarExists( "rwby_max_ammo_dust_fire") then
+	CreateConVar( "rwby_max_ammo_dust_fire", 36, {FCVAR_REPLICATED, FCVAR_ARCHIVE} )
+end
+if !ConVarExists( "rwby_max_ammo_dust_electric") then
+	CreateConVar( "rwby_max_ammo_dust_electric", 36, {FCVAR_REPLICATED, FCVAR_ARCHIVE} )
+end
+if !ConVarExists( "rwby_max_ammo_dust_gravity") then
+	CreateConVar( "rwby_max_ammo_dust_gravity", 36, {FCVAR_REPLICATED, FCVAR_ARCHIVE} )
+end
 
+hook.Add( "Initialize", "RWBYAmmoInitialize", function()
+	game.AddAmmoType {
+		name		= "rwby_dust",
+		dmgtype		= DMG_BULLET,
+		tracer		= TRACER_LINE,
+		plydmg		= 0,
+		npcdmg		= 0,
+		force		= 2000,
+		minsplash	= 10,
+		maxsplash	= 15,
+		maxcarry	= "rwby_max_ammo_dust"
+	}
+	game.AddAmmoType {
+		name		= "rwby_dust_fire",
+		dmgtype		= DMG_BULLET,
+		tracer		= TRACER_LINE,
+		plydmg		= 0,
+		npcdmg		= 0,
+		force		= 2000,
+		minsplash	= 10,
+		maxsplash	= 15,
+		maxcarry	= "rwby_max_ammo_dust_fire"
+	}
+	game.AddAmmoType {
+		name		= "rwby_dust_electric",
+		dmgtype		= DMG_BULLET,
+		tracer		= TRACER_LINE,
+		plydmg		= 0,
+		npcdmg		= 0,
+		force		= 2000,
+		minsplash	= 10,
+		maxsplash	= 15,
+		maxcarry	= "rwby_max_ammo_dust_electric"
+	}
+	game.AddAmmoType {
+		name		= "rwby_dust_gravity",
+		dmgtype		= DMG_BULLET,
+		tracer		= TRACER_LINE,
+		plydmg		= 0,
+		npcdmg		= 0,
+		force		= 2000,
+		minsplash	= 10,
+		maxsplash	= 15,
+		maxcarry	= "rwby_max_ammo_dust_gravity"
+	}
+	print("RWBY Weapons: Added Custom Dust Ammo Types!")
+end )
+
+
+
+
+local pow = function(ply, cmd, args)
+	print( "Dust Ammo: "..game.GetAmmoMax(game.GetAmmoID( "rwby_dust" )))
+	print( "Fire Ammo: "..game.GetAmmoMax(game.GetAmmoID( "rwby_dust_fire" )))
+	print( "Electric Ammo: "..game.GetAmmoMax(game.GetAmmoID( "rwby_dust_electric" )))
+	print( "Gravity Ammo: "..game.GetAmmoMax(game.GetAmmoID( "rwby_dust_gravity" )))
+end
+
+concommand.Add("rwby_test_ammo" , pow)
+
+/*
 version = "1.3"
 function VersionCheck()
 	http.Fetch("https://raw.githubusercontent.com/BluePentagram/Gmod_RWBY_Weapons/master/version.txt", function( body, len, headers, code)
@@ -66,26 +98,4 @@ function VersionCheck()
 	end)
 end
 timer.Simple(5, function() VersionCheck() end) 
-
-RWBYWeapons = {"swep_crescent_rose","swep_myrtenaster","swep_magnhild","swep_croceamors"}
-if CLIENT then
-	hook.Add( "CalcView", "RWBY3RDCamera", function( ply, pos, angles, fov )
-		if ( !IsValid( ply ) or !ply:Alive() or ply:InVehicle() or ply:GetViewEntity() != ply ) then return end
-		if ( !LocalPlayer().GetActiveWeapon or !IsValid( LocalPlayer():GetActiveWeapon() ) or !table.HasValue(RWBYWeapons, LocalPlayer():GetActiveWeapon():GetClass()) or !GetConVar("cl_rwby_thirdperson"):GetBool() or LocalPlayer():GetActiveWeapon().Zoomed ) then return end
-		local trace = util.TraceHull( {
-		start = pos,
-		endpos = pos - angles:Forward() * 100 + angles:Right() * 15,
-		filter = { ply:GetActiveWeapon(), ply },
-		mins = Vector( -4, -4, -4 ),
-		maxs = Vector( 4, 4, 4 ),
-		} )
-		local traent = trace.Entity
-		if ( trace.HitWorld or traent:IsPlayer() or traent:IsNPC() or trace.Hit ) then pos = trace.HitPos else pos = pos - angles:Forward() * 100 + angles:Right() * 15  end
-	
-		return {
-			origin = pos,
-			angles = angles,
-			drawviewer = true
-		}
-	end )
-end
+*/

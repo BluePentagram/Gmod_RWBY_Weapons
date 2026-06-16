@@ -4,6 +4,9 @@
 if SERVER then // init.
 
 	util.AddNetworkString( "Cresent_HoldType" )
+	if game.SinglePlayer() then
+		util.AddNetworkString( "Cresent_FixSingleplayer" )
+	end
 	AddCSLuaFile()
 	SWEP.Weight = 5
 	SWEP.AutoSwitchTo = true
@@ -11,7 +14,6 @@ if SERVER then // init.
 
 elseif CLIENT then // cl_init
 
-	-- include()
 	SWEP.PrintName = "Crescent Rose"
 	SWEP.Slot = 2
 	SWEP.SlotPos = 20
@@ -25,35 +27,66 @@ elseif CLIENT then // cl_init
 		local GunP = CrescentWeapon.WElements["Crescent Rose"].pos
 		local GunA = CrescentWeapon.WElements["Crescent Rose"].angle
 		CrescentWeapon:SetWeaponHoldType(CrescentHold)
+		-- First Person
+		//if LocalPlayer() == CrescentWeapon.Owner then -- Does not see to give error on NPC and seems to fix swap off and on gun.
+		if CrescentHold == "melee2" then
+			CrescentWeapon.VElements["Crescent Rose Rife"].color.a = 0
+			CrescentWeapon.VElements["Crescent Rose Scythe"].color.a = 255
+			CrescentWeapon.VElements["Crescent Rose Rife"].modelEnt:ResetSequence("fold_to_rife")
+			CrescentWeapon.VElements["Crescent Rose Rife"].modelEnt:SetPlaybackRate(1)
+			CrescentWeapon.VElements["Crescent Rose Scythe"].modelEnt:ResetSequence("fold_to_rife")
+			CrescentWeapon.VElements["Crescent Rose Scythe"].modelEnt:SetPlaybackRate(1)
+		else
+			CrescentWeapon.VElements["Crescent Rose Rife"].color.a = 255
+			CrescentWeapon.VElements["Crescent Rose Scythe"].color.a = 0
+			CrescentWeapon.VElements["Crescent Rose Rife"].modelEnt:ResetSequence("unfold_from_fifle")
+			CrescentWeapon.VElements["Crescent Rose Rife"].modelEnt:SetPlaybackRate(5)
+			CrescentWeapon.VElements["Crescent Rose Scythe"].modelEnt:ResetSequence("unfold_from_fifle")
+			CrescentWeapon.VElements["Crescent Rose Scythe"].modelEnt:SetPlaybackRate(5)
+		end
+		//end
+		-- Third Person
 		if CrescentHold == "melee2" then
 			CrescentWeapon.WElements["Crescent Rose"].modelEnt:ResetSequence("fold_to_rife") -- To Gun
 			CrescentWeapon.WElements["Crescent Rose"].modelEnt:SetPlaybackRate(1)
+			-- Pos
 			GunP.x = 5.699
 			GunP.y = 0.519
 			GunP.z = -15.065
-			
+			-- Angle
 			GunA.x = -90
 			GunA.y = -5
 			GunA.z = 180	
 		else
 			CrescentWeapon.WElements["Crescent Rose"].modelEnt:ResetSequence("unfold_from_fifle") -- To Melee
 			CrescentWeapon.WElements["Crescent Rose"].modelEnt:SetPlaybackRate(1)
+			-- Pos
 			GunP.x = 16
 			GunP.y = -0.5
 			GunP.z = -2
-			
+			-- Angle
 			GunA.x = -9
 			GunA.y = 0
 			GunA.z = 180
 		end
-		-- CrescentWeapon:CameraPos(gun)
 	end)
+
+	net.Receive("Cresent_FixSingleplayer", function() -- Fix for singleplayer games not used in a dedicated/multiplayer at all (most swep func ingore client in singleplayer ).
+		local DeployWeapon = net.ReadBool()
+		local CrescentWeapon = net.ReadEntity()
+		local CrescentAmmo = net.ReadString()
+		if DeployWeapon then
+			HideHLWeapon(CrescentWeapon)
+		else
+			CrescentWeapon.Primary.Ammo = CrescentAmmo
+		end
+	end)
+
 	local scope = surface.GetTextureID("vgui/rwbyicons/cr_scope")
 	function SWEP:DrawHUD()
 		local ply = self.Owner
 		local x = 20
 		local y = ScrH() - 20
-		--draw.SimpleText("This is a 'WIP' Weapon of the "..self.PrintName..". Gun Mode? "..tostring(self.Gun)..". Ammo Type:"..self.Primary.Ammo,"Default",x, y,Color(194,30,86,255))
 		
 		if self.Zoomed then
 			surface.SetDrawColor( RedColor )
@@ -206,11 +239,8 @@ function SWEP:Reload()
 	if not IsFirstTimePredicted() then return end
 	if self.ReloadingTime and CurTime() <= self.ReloadingTime then return end
 	if self.Owner:KeyDown(IN_USE) then
-		-- if not IsFirstTimePredicted() then return end
-			-- if SERVER then return end
-			self:ChangeMode()
-			self.ReloadingTime = CurTime() + 1
-		-- return
+		self:ChangeMode()
+		self.ReloadingTime = CurTime() + 1
 	else
 		if !self.Gun then
 			self.ReloadingTime = CurTime() + 1
@@ -224,7 +254,6 @@ function SWEP:Reload()
 			self:SetNextSecondaryFire(CurTime() + AnimationTime)
 		end
 	end	
-	-- end
 end
  
 function SWEP:PrimaryAttack()
@@ -246,40 +275,41 @@ function SWEP:SecondaryAttack()
 		end
 	end
 	if self.Owner:KeyDown(IN_USE) then
-		if SERVER then
-			self.Owner:GiveAmmo( self:Clip1(), self.Primary.Ammo, true )
-		end
-		if self:Clip1() > 0 then
-			self.Primary.LastAmmo = self.Primary.Ammo
-			self.Primary.LastAmmoAmount = self:Clip1()
-		end
-		loadeddust = "Regular"
-		if self.Primary.Ammo == "rwby_dust" then
-			self.Primary.Ammo = "rwby_dust_fire"
-			loadeddust = "Fire"
-		elseif self.Primary.Ammo == "rwby_dust_fire" then
-			self.Primary.Ammo = "rwby_dust_electric"
-			loadeddust = "Electic"
-		elseif self.Primary.Ammo == "rwby_dust_electric" then
-			self.Primary.Ammo = "rwby_dust_gravity"
-			loadeddust = "Gravity"
-		else
-			self.Primary.Ammo = "rwby_dust"
-		end
-		if self.Primary.Ammo == self.Primary.LastAmmo then
-			self:SetClip1(self.Primary.LastAmmoAmount)
-			self.Owner:RemoveAmmo( self.Primary.LastAmmoAmount, self.Primary.Ammo )
-			self.Primary.LastAmmo = ""
-			self.Primary.LastAmmoAmount = 0
-			if game.SinglePlayer() then
-				self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose: "..loadeddust.." Dust has been selected.")
-			end
-		else
-			self:SetClip1(0)
-			if game.SinglePlayer() then
-				self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose: "..loadeddust.." Dust is to be loaded.")
-			end
-		end
+		self:SwapAmmo()
+	end
+end
+
+function SWEP:SwapAmmo()
+	if SERVER then
+		self.Owner:GiveAmmo( self:Clip1(), self.Primary.Ammo, true )
+	end
+	if self:Clip1() > 0 then
+		self.Primary.LastAmmo = self.Primary.Ammo
+		self.Primary.LastAmmoAmount = self:Clip1()
+	end
+	if self.Primary.Ammo == "rwby_dust" then
+		self.Primary.Ammo = "rwby_dust_fire"
+	elseif self.Primary.Ammo == "rwby_dust_fire" then
+		self.Primary.Ammo = "rwby_dust_electric"
+	elseif self.Primary.Ammo == "rwby_dust_electric" then
+		self.Primary.Ammo = "rwby_dust_gravity"
+	else
+		self.Primary.Ammo = "rwby_dust"
+	end
+	if self.Primary.Ammo == self.Primary.LastAmmo then
+		self:SetClip1(self.Primary.LastAmmoAmount)
+		self.Owner:RemoveAmmo( self.Primary.LastAmmoAmount, self.Primary.Ammo )
+		self.Primary.LastAmmo = ""
+		self.Primary.LastAmmoAmount = 0
+	else
+		self:SetClip1(0)
+	end
+	if game.SinglePlayer() then
+		net.Start("Cresent_FixSingleplayer")
+			net.WriteBool(false)
+			net.WriteEntity(self)
+			net.WriteString(self.Primary.Ammo)
+		net.Broadcast()
 	end
 end
 
@@ -299,7 +329,6 @@ function SWEP:CresentRoseWeaponScope()
 end
 
 function SWEP:Think()
-	-- self.Owner:NextThink( CurTime() )
 	if self.Owner:GetVelocity():Length() > 650 then
 		local OurEnt = self.Owner
 		local part = EffectData()
@@ -311,7 +340,6 @@ function SWEP:Think()
 		util.Effect( "rosepetals", part)
 		end 
 	end
-	-- return true;
 end
 
 function SWEP:AdjustMouseSensitivity()
@@ -325,84 +353,59 @@ function SWEP:ChangeMode()
 		self.Gun = false 
 		self.Hold = "melee2"
 		self.Owner:GetViewModel( 0 ):SetWeaponModel( self.ViewModel, self )
-		if CLIENT then
-			self.VElements["Crescent Rose Rife"].color.a = 0
-			self.VElements["Crescent Rose Scythe"].color.a = 255
-			//print(tostring(self.VElements["Crescent Rose Rife"].modelEnt))
-			self.VElements["Crescent Rose Rife"].modelEnt:ResetSequence("fold_to_rife")
-			self.VElements["Crescent Rose Rife"].modelEnt:SetPlaybackRate(.5)
-			self.VElements["Crescent Rose Scythe"].modelEnt:ResetSequence("fold_to_rife")
-			self.VElements["Crescent Rose Scythe"].modelEnt:SetPlaybackRate(.5)
-		end
 	else
 		self.Gun = true 
 		self.Hold = "crossbow"
-		self:CrescentToGun(self)
+		self.Owner:GetViewModel( 0 ):SetWeaponModel( self.ViewModel2, self )
 	end	
 	self:SetWeaponHoldType( self.Hold )
-	if CLIENT then return end
 	self:SendWeaponStatus()
 end
 
 function SWEP:SendWeaponStatus()
+	if CLIENT then return end
 	net.Start("Cresent_HoldType")
 		net.WriteEntity(self)
 		net.WriteString(self.Hold)
 	net.Broadcast()
 end
 
-function SWEP:CrescentToGun()
-	self.Owner:GetViewModel( 0 ):SetWeaponModel( self.ViewModel2, self )
-	if CLIENT then
-		self.VElements["Crescent Rose Rife"].modelEnt:ResetSequence("unfold_from_fifle")
-		self.VElements["Crescent Rose Rife"].modelEnt:SetPlaybackRate(.5)
-		self.VElements["Crescent Rose Rife"].color.a = 255
-		self.VElements["Crescent Rose Scythe"].color.a = 0
-		self.VElements["Crescent Rose Scythe"].modelEnt:ResetSequence("unfold_from_fifle")
-		self.VElements["Crescent Rose Scythe"].modelEnt:SetPlaybackRate(.5)
-	end
-end
-
 function SWEP:Deploy()
 	BaseClass.Deploy( self )
 	if self.Gun then -- If in gun mode does not go to gun on swap
-		self:CrescentToGun(self)
+		self.Owner:GetViewModel( 0 ):SetWeaponModel( self.ViewModel2, self )
 	end
 	if CLIENT and IsValid(self.Owner) then
-		local vm = self.Owner:GetViewModel()
-		if IsValid(vm) then
-			self:ResetBonePositions(vm)
-			vm:SetColor(Color(0,0,0,1))
-			vm:SetMaterial("models/effects/vol_light001")
-		end
+		HideHLWeapon(self)
 	end
-	if SERVER then
-		timer.Simple( 0.1, function() 
-			if self.First then self.First = false return end
-			self:SetWeaponHoldType( self.Hold )
-			if self.Owner:IsPlayer() then
-				self:SendWeaponStatus()
-			end
-		end)
+	if game.SinglePlayer() then
+		net.Start("Cresent_FixSingleplayer")
+			net.WriteBool(true)
+			net.WriteEntity(self)
+			net.WriteString(self.Primary.Ammo)
+		net.Broadcast()
 	end
 	return true
 end
-CrescentWarn = true
-function SWEP:Equip( ply )
-	if game.SinglePlayer() and CrescentWarn then
-		self.Owner:PrintMessage(HUD_PRINTTALK,"Crescent Rose: This SWEP does not function correctly with some client elements in singleplayer.")
-		CrescentWarn = false
+
+function HideHLWeapon(Weapon)
+	local vm = Weapon.Owner:GetViewModel()
+	if IsValid(vm) then
+		Weapon:ResetBonePositions(vm)
+		vm:SetColor(Color(0,0,0,1))
+		vm:SetMaterial("models/effects/vol_light001")
 	end
+end
+
+function SWEP:Equip( ply )
 	if ( ply:IsNPC() or ply:IsNextBot() ) then 
-		--print("Crescent Rose NPC: "..tostring(ply))
 		self.Gun = true
 		self.Hold = "crossbow"
-		--print("Crescent Rose NPC: "..self.Hold)
-		timer.Simple( 0.1, function() 
+		timer.Simple( .5, function() 
 			self:SendWeaponStatus()
 		end)
+		return
 	end
-	print(GetConVar("gmod_maxammo"):GetInt())
 	if !gamemode.Get("darkrp") and self.Owner:IsPlayer() and GetConVar("gmod_maxammo"):GetInt() == 9999 then 
 		ply:GiveAmmo( 50, "rwby_dust", true )
 		ply:GiveAmmo( 50, "rwby_dust_fire", true )
@@ -470,7 +473,6 @@ function SWEP:CrescentShoot()
 		if self.Owner:IsPlayer() then -- Here for Bot's not having a eye trace
 			eyetrace = self.Owner:GetEyeTrace() 
 		end
-		//print(eyetrace)
 		self:EmitSound("weapons/sg552/sg552-1.wav")
 		//self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
 		self:ShootBullet( self.Primary.Damage, 1, 0)
@@ -480,7 +482,7 @@ function SWEP:CrescentShoot()
 			local Dust_Burn = ents.FindInSphere( eyetrace.HitPos, 80 ) 
 			for _, v in ipairs(Dust_Burn) do
 				if v:IsPlayer() or v:IsNPC() or v:IsNextBot() or v:GetClass() == "prop_physics" then
-					v:Ignite(25)
+					v:Ignite(10)
 				end
 			end
 			local Dust_Explosion = ents.Create("env_explosion")
@@ -494,14 +496,9 @@ function SWEP:CrescentShoot()
 		if (self.Primary.Ammo == "rwby_dust_electric" and SERVER) then
 			if !eyetrace.Entity:IsWorld() then
 				local Dust_Elec = ents.FindInSphere( eyetrace.HitPos, 150 ) 
-				//local shock = false
-				//local Elec_Rand = {}
 				for _, v in ipairs(Dust_Elec) do
 					if v:IsPlayer() or v:IsNPC() or v:IsNextBot() then
-						//if eyetrace.Entity != v and v != self.Owner then
 						if eyetrace.Entity != v then
-							//if !shock then shock = true end
-							//table.insert( Elec_Rand, v )
 							local randomshockdamage = math.random(1,self.DustElectricDam)
 							local dmg = DamageInfo() -- Create a server-side damage information class
 							dmg:SetDamage( randomshockdamage )
@@ -512,17 +509,6 @@ function SWEP:CrescentShoot()
 						end
 					end
 				end
-				//PrintTable(Elec_Rand)
-				//if shock then
-				//	local Elec_Tar = Elec_Rand[math.random(1,#Elec_Rand)]
-				//	print(Elec_Tar)
-				//	local dmg = DamageInfo() -- Create a server-side damage information class
-				//	dmg:SetDamage( self.DustElectricDam )
-				//	dmg:SetAttacker( self:GetOwner() )
-				//	dmg:SetInflictor( self.Weapon or self )
-				//	dmg:SetDamageType( DMG_SHOCK )
-				//	Elec_Tar:TakeDamageInfo( dmg )
-				//end
 			end
 		end
 		if self.Owner:IsOnGround() and self.Owner:IsPlayer() then self.Owner:ViewPunch( Angle( -2, 0, 0 ) ) end
